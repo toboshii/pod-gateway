@@ -1,0 +1,6 @@
+#!/bin/sh
+VXLAN_IP_NETWORK="172.16.0"
+DNS_ORG="10.96.0.10"
+VXLAN_ROUTER_IP="${VXLAN_IP_NETWORK}.1"
+VXLAN_ID="42"
+OPENVPN_ROUTER_NAME="openvpn.kube-system.svc.cluster.local"

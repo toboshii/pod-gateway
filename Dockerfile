@@ -1,27 +1,16 @@
-FROM golang:1.16 AS build
-
-WORKDIR /workspace
-ENV GO111MODULE=on
-
-COPY *.go go.mod *.sum ./
-
-# Build
-RUN go mod download
-
-RUN CGO_ENABLED=0 go build -o app -ldflags '-w -extldflags "-static"' .
-
-#Test
-RUN  CCGO_ENABLED=0 go test -v .
-
-# Use distroless as minimal base image to package the manager binary
-# Refer to https://github.com/GoogleContainerTools/distroless for more details
-# debug tag adds a shell (not recommended for prod)
-FROM gcr.io/distroless/static:nonroot
+FROM alpine:3.13.5
 WORKDIR /
-COPY --from=build /workspace/app /app/app
-USER nonroot:nonroot
 
-ENTRYPOINT ["/app/app"]
+# iproute2 -> bridge
+# bind-tools -> bind
+# dhclient -> get dynamic IP
+# dnsmasq -> DNS & DHCP server
+# coreutils -> need REAL chown and chmod for dhclient (it uses reference option not supported in busybox)
+RUN apk add --no-cache coreutils dnsmasq iproute2 bind-tools dhclient
+
+COPY config /config
+COPY bin /bin
+CMD [ "/bin/entry.sh" ]
 
 ARG IMAGE_SOURCE
 #https://github.com/k8s-at-home/template-container-image
