@@ -1,7 +1,7 @@
 #!/bin/sh
 VXLAN_IP_NETWORK="172.16.0"
-DNS_ORG="10.96.0.10"
+DNS_K8S="${DNS_ip}"
 VXLAN_GATEWAY_IP="${VXLAN_IP_NETWORK}.1"
 VXLAN_ID="42"
-GATEWAY_NAME="gateway-pod.kube-system.svc.cluster.local"
+GATEWAY_NAME="${gateway}"
 BLOCK_NON_VPN_OUTPUT=true

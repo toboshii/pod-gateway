@@ -10,12 +10,6 @@ if ip addr|grep -q vxlan0; then
   ip link del vxlan0
 fi
 
-
-
-K8S_GW_ROUTE=$(ip route get ${DNS_ORG}|head -1)
-K8S_GW_ROUTE=${K8S_GW_ROUTE%%uid*}
-ip route add $K8S_GW_ROUTE || /bin/true
-
 # Delete default GW to prevent outgoing traffic to leave this docker
 echo "Deleting existing default GWs"
 ip route del 0/0 || /bin/true
@@ -28,8 +22,8 @@ if ping -c 1 -W 1000 8.8.8.8; then
 fi
 
 # Derived settings
-GATEWAY_IP="$(dig +short $GATEWAY_NAME @${DNS_ORG})"
-GW_ORG=$(route |awk '$1=="default"{print $2}')
+GATEWAY_IP="$(dig +short ${GATEWAY_NAME})"
+#GW_ORG=$(route |awk '$1=="default"{print $2}')
 NAT_ENTRY="$(grep $(hostname) /config/nat.conf||true)"
 
 # Create tunnel NIC
@@ -48,14 +42,14 @@ timeout 30;
 
 interface \"vxlan0\"
  {
-  apend domain-name-servers ${DNS_ORG};
+  #apend domain-name-servers ${DNS_K8S};
   request subnet-mask,
           broadcast-address,
           routers,
-          domain-name-servers;
+          #domain-name-servers;
   require routers,
           subnet-mask,
-          domain-name-servers;
+          #domain-name-servers;
  }
 " > /etc/dhclient.conf
 
@@ -69,26 +63,8 @@ else
   echo "Use fixed IP $VXLAN_IP"
   ip addr add $VXLAN_IP/24 dev vxlan0
   route add default gw $VXLAN_GATEWAY_IP
-  echo "nameserver $VXLAN_GATEWAY_IP">/etc/resolv.conf.dhclient
+  #echo "nameserver $VXLAN_GATEWAY_IP">/etc/resolv.conf.dhclient
 fi
 ping -c1 $VXLAN_GATEWAY_IP
 
-# Set DNS
-# route add $DNS_ORG gw $GW_ORG
-cp -av /etc/resolv.conf.dhclient* /etc_shared/resolv.conf
-
-FIRST_BOOT_MARKER=/etc_shared/booted
-if [ ! -e "$FIRST_BOOT_MARKER" ] || [ -n "$FIRST_BOOT" ]; then
-  touch $FIRST_BOOT_MARKER
-  echo "First boot (init container): ending now."
-  exit 0
-else
-  echo "Not first boot: stay on monitoring connection to VPN"
-  while true; do
-    # Sleep while reacting to signals
-    sleep 600 &
-    wait $!
-    # Ping router
-    ping -c1 $VXLAN_GATEWAY_IP
-  done
-fi
+echo "Gateway ready and reachable"

@@ -2,7 +2,7 @@ FROM alpine:3.13.5
 WORKDIR /
 
 # iproute2 -> bridge
-# bind-tools -> bind
+# bind-tools -> dig, bind
 # dhclient -> get dynamic IP
 # dnsmasq -> DNS & DHCP server
 # coreutils -> need REAL chown and chmod for dhclient (it uses reference option not supported in busybox)
