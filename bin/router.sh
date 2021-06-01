@@ -5,7 +5,7 @@ cat /config/settings.sh
 
 #Create tunnel NIC
 ip link add vxlan0 type vxlan id $VXLAN_ID  dev eth0 dstport 0 || true
-ip addr add ${VXLAN_ROUTER_IP}/24 dev vxlan0 || true
+ip addr add ${VXLAN_GATEWAY_IP}/24 dev vxlan0 || true
 ip link set up dev vxlan0
 
 #Enable outbound NAT
@@ -39,21 +39,23 @@ echo "Reject other traffic"
 iptables -A FORWARD -i tun0 -j REJECT
 #iptables -A INPUT -i tun0 -j REJECT
 
-#Do not forward any traffic that does not leave through tun0
-# The openvpn will also add drop rules but this is to ensure we block even if VPN is not connecting
-iptables --policy FORWARD DROP
-iptables -I FORWARD -o tun0 -j ACCEPT
+if [ "$BLOCK_NON_VPN_OUTPUT" = true ] ; then
+  # Do not forward any traffic that does not leave through tun0
+  # The openvpn will also add drop rules but this is to ensure we block even if VPN is not connecting
+  iptables --policy FORWARD DROP
+  iptables -I FORWARD -o tun0 -j ACCEPT
 
-#Do not allow outbound traffic on eth0 beyond VPN and local traffic
-iptables --policy OUTPUT DROP
-iptables -A OUTPUT -p udp --dport 443 -j ACCEPT #VPN traffic over UDP
-iptables -A OUTPUT -p tcp --dport 443 -j ACCEPT #VPN traffic over TCP
-iptables -A OUTPUT -d 10.0.0.0/8  -j ACCEPT
-iptables -A OUTPUT -d 192.168.0.0/16  -j ACCEPT
-iptables -A OUTPUT -o tun0 -j ACCEPT
-iptables -A OUTPUT -o vxlan0 -j ACCEPT
+  #Do not allow outbound traffic on eth0 beyond VPN and local traffic
+  iptables --policy OUTPUT DROP
+  iptables -A OUTPUT -p udp --dport 443 -j ACCEPT #VPN traffic over UDP
+  iptables -A OUTPUT -p tcp --dport 443 -j ACCEPT #VPN traffic over TCP
+  iptables -A OUTPUT -d 10.0.0.0/8  -j ACCEPT
+  iptables -A OUTPUT -d 192.168.0.0/16  -j ACCEPT
+  iptables -A OUTPUT -o tun0 -j ACCEPT
+  iptables -A OUTPUT -o vxlan0 -j ACCEPT
+fi
 
 #Routes for local networks
 GW_IP=$(/sbin/ip route | awk '/default/ { print $3 }')
-ip route add 10.0.0.0/8 via ${GW_IP}
+#ip route add 10.0.0.0/8 via ${GW_IP}
 ip route add 192.168.0.0/16 via ${GW_IP}
