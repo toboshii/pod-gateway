@@ -53,7 +53,7 @@ if [ -n "${VPN_INTERFACE}" ]; then
     iptables -A OUTPUT -p tcp --dport 443 -j ACCEPT #VPN traffic over TCP
 
     # Allow local traffic
-    for local_cidr in VPN_LOCAL_CIDRS; do
+    for local_cidr in ${VPN_LOCAL_CIDRS}; do
       iptables -A OUTPUT -d ${local_cidr} -j ACCEPT
     done
 
@@ -64,7 +64,7 @@ if [ -n "${VPN_INTERFACE}" ]; then
 
   #Routes for local networks
   GW_IP=$(/sbin/ip route | awk '/default/ { print $3 }')
-  for local_cidr in VPN_LOCAL_CIDRS; do
+  for local_cidr in ${VPN_LOCAL_CIDRS}; do
     # command might fail if rule already set
     ip route add ${local_cidr} via ${GW_IP} || /bin/true
   done
