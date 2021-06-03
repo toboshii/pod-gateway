@@ -22,7 +22,8 @@ if ping -c 1 -W 1000 8.8.8.8; then
 fi
 
 # Derived settings
-GATEWAY_IP="$(dig +short ${GATEWAY_NAME})"
+K8S_DNS_IP="$(echo ${K8S_DNS_IPS} | cut --delimiter ' ' --fields 1)"
+GATEWAY_IP="$(dig +short ${GATEWAY_NAME} @${K8S_DNS_IP})"
 #GW_ORG=$(route |awk '$1=="default"{print $2}')
 NAT_ENTRY="$(grep $(hostname) /config/nat.conf||true)"
 

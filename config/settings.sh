@@ -2,6 +2,9 @@
 # hostname of the gateway - it must accept vxlan and DHCP traffic
 # clients get it as env variable
 GATEWAY_NAME="${gateway}"
+# K8S DNS IP address
+# clients get it as env variable
+K8S_DNS_IPS="${K8S_DNS_ips}"
 
 # Vxlan ID to use
 VXLAN_ID="42"
