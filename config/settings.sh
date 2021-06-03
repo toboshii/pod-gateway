@@ -21,4 +21,4 @@ VPN_LOCAL_CIDRS="10.0.0.0/8 192.168.0.0/16"
 
 # DNS queries to these domains will be resolved by K8S DNS instead of
 # the default (typcally the VPN client changes it)
-DNS_LOCAL_CIDRS=
+DNS_LOCAL_CIDRS="local"

@@ -16,9 +16,6 @@ bind-interfaces
 # Dynamic IPs assigned to PODs - we keep a range for static IPs
 dhcp-range=${VXLAN_IP_NETWORK}.${VXLAN_GATEWAY_FIRST_DYNAMIC_IP},${VXLAN_IP_NETWORK}.255,12h
 
-# Send K8S cluster local DNS query to the K8S DNS server
-server=/local/${K8S_DNS}
-
 # For debugging purposes, log each DNS query as it passes through
 # dnsmasq.
 log-queries                                                 
@@ -29,6 +26,13 @@ log-dhcp
 # Log to stdout
 log-facility=-
 ">>/etc/dnsmasq.conf
+
+for local_cidr in ${DNS_LOCAL_CIDRS}; do
+echo "
+# Send ${local_cidr} DNS queries to the K8S DNS server
+server=/${local_cidr}/${K8S_DNS}
+">>/etc/dnsmasq.conf
+done
 
 # Need to wait until new DNS server in /etc/resolv.conf is setup
 # by the VPN.
