@@ -37,7 +37,6 @@ echo Accept traffic alredy ESTABLISHED
 iptables -A FORWARD -i tun0 -m state --state ESTABLISHED,RELATED -j ACCEPT
 echo "Reject other traffic"
 iptables -A FORWARD -i tun0 -j REJECT
-#iptables -A INPUT -i tun0 -j REJECT
 
 if [ "$BLOCK_NON_VPN_OUTPUT" = true ] ; then
   # Do not forward any traffic that does not leave through tun0

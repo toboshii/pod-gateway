@@ -42,7 +42,6 @@ timeout 30;
 
 interface \"vxlan0\"
  {
-  #apend domain-name-servers ${DNS_K8S};
   request subnet-mask,
           broadcast-address,
           routers,
