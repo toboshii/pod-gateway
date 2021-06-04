@@ -8,6 +8,12 @@ cat /config/settings.sh
 # on first entry set a routing rule to the k8s DNS server
 if ip addr|grep -q vxlan0; then
   ip link del vxlan0
+else
+  K8S_GW_IP=$(/sbin/ip route | awk '/default/ { print $3 }')
+  for local_cidr in ${NOT_ROUTED_TO_GATEWAY_CIDRS}; do
+    # command might fail if rule already set
+    ip route add ${local_cidr} via ${K8S_GW_IP} || /bin/true
+  done
 fi
 
 # Delete default GW to prevent outgoing traffic to leave this docker
@@ -22,7 +28,7 @@ if ping -c 1 -W 1000 8.8.8.8; then
 fi
 
 # Derived settings
-K8S_DNS_IP="$(echo ${K8S_DNS_IPS} | cut --delimiter ' ' --fields 1)"
+K8S_DNS_IP="$(echo ${K8S_DNS_IPS} | cut -d ' ' -f 1)"
 GATEWAY_IP="$(dig +short ${GATEWAY_NAME} @${K8S_DNS_IP})"
 #GW_ORG=$(route |awk '$1=="default"{print $2}')
 NAT_ENTRY="$(grep $(hostname) /config/nat.conf||true)"

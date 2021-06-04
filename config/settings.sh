@@ -5,6 +5,10 @@ GATEWAY_NAME="${gateway}"
 # K8S DNS IP address
 # clients get it as env variable
 K8S_DNS_IPS="${K8S_DNS_ips}"
+# IPs mpt send to the POD gateway but to the default K8S
+# This is needed, for example, in case your CNI does
+# not add a non-default rule for the K8S addresses (Flannel does)
+NOT_ROUTED_TO_GATEWAY_CIDRS=""
 
 # Vxlan ID to use
 VXLAN_ID="42"

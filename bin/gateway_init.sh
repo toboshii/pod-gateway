@@ -62,10 +62,10 @@ if [ -n "${VPN_INTERFACE}" ]; then
   fi
 
   #Routes for local networks
-  GW_IP=$(/sbin/ip route | awk '/default/ { print $3 }')
+  K8S_GW_IP=$(/sbin/ip route | awk '/default/ { print $3 }')
   for local_cidr in ${VPN_LOCAL_CIDRS}; do
     # command might fail if rule already set
-    ip route add ${local_cidr} via ${GW_IP} || /bin/true
+    ip route add ${local_cidr} via ${K8S_GW_IP} || /bin/true
   done
 
 fi
