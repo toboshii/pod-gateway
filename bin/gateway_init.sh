@@ -49,8 +49,8 @@ if [ -n "${VPN_INTERFACE}" ]; then
 
     # Do not allow outbound traffic on eth0 beyond VPN and local traffic
     iptables --policy OUTPUT DROP
-    iptables -A OUTPUT -p udp --dport 443 -j ACCEPT #VPN traffic over UDP
-    iptables -A OUTPUT -p tcp --dport 443 -j ACCEPT #VPN traffic over TCP
+    iptables -A OUTPUT -p udp --dport ${VPN_TRAFFIC_PORT} -j ACCEPT #VPN traffic over UDP
+    iptables -A OUTPUT -p tcp --dport ${VPN_TRAFFIC_PORT} -j ACCEPT #VPN traffic over TCP
 
     # Allow local traffic
     for local_cidr in ${VPN_LOCAL_CIDRS}; do
