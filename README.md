@@ -3,6 +3,8 @@
 This container includes scripts used to route traafic from pods through another gateway pod. Typically
 the gateway pod then runs a openvpn client to forward the traffic.
 
+This container is typically used by the [pod-gateway]()
+
 The connection between the pods is done via a vxlan. The gatway provides a DHCP server to let client
 pods to get automatically an IP.
 
@@ -29,7 +31,7 @@ This container provides the required init/sidecar containers for clients and gat
      Optionally, if a VPN is used in the gateway, blocks non VPN outbound traffic.
    - [gateway_sidecar.sh](bin/gateway_sidecar.sh): deploys a DHCP and DNS server
 
-Settings are expected in the `/config` folder - see examples [config](config):
+Settings are expected in the `/config` folder - see examples under [config](config):
 - [config/settings.sh](config/settings.sh): variables used by all helper scripts
 - [config/nat.sh](config/nat.sh): static IP and nat rules for PODs exposing ports through the gateway (and optional VPN) POD
 Default settings might be overwritten by attachin a container volume with the new values to the helper pods.

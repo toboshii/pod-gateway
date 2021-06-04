@@ -28,11 +28,22 @@ if ping -c 1 -W 1000 8.8.8.8; then
   exit 255
 fi
 
+# For debugging reasons print some info
+ip addr
+ip route
+
 # Derived settings
 K8S_DNS_IP="$(echo ${K8S_DNS_IPS} | cut -d ' ' -f 1)"
 GATEWAY_IP="$(dig +short ${GATEWAY_NAME} @${K8S_DNS_IP})"
 #GW_ORG=$(route |awk '$1=="default"{print $2}')
 NAT_ENTRY="$(grep $(hostname) /config/nat.conf||true)"
+
+# For debugging reasons print some info
+ip addr
+ip route
+
+# Check we can connect to the GATEWAY IP
+ping -c1 $GATEWAY_IP
 
 # Create tunnel NIC
 ip link add vxlan0 type vxlan id $VXLAN_ID dev eth0 dstport 0 || true
@@ -63,7 +74,7 @@ interface \"vxlan0\"
 #Configure IP and default GW though the gateway docker
 if [ -z "$NAT_ENTRY" ]; then
   echo "Get dynamic IP"
-  dhclient -cf /etc/dhclient.conf vxlan0
+  dhclient -v -cf /etc/dhclient.conf vxlan0
 else
   IP=$(echo $NAT_ENTRY|cut -d' ' -f2)
   VXLAN_IP="${VXLAN_IP_NETWORK}.${IP}"
@@ -72,6 +83,12 @@ else
   route add default gw $VXLAN_GATEWAY_IP
   #echo "nameserver $VXLAN_GATEWAY_IP">/etc/resolv.conf.dhclient
 fi
+
+# For debugging reasons print some info
+ip addr
+ip route
+
+# Check we can connect to the gateway ussing the vxlan device
 ping -c1 $VXLAN_GATEWAY_IP
 
 echo "Gateway ready and reachable"
