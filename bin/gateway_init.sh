@@ -11,28 +11,27 @@ ip link set up dev vxlan0
 # Enable outbound NAT
 iptables -t nat -A POSTROUTING -j MASQUERADE
 
-# Open inbound NAT ports in nat.conf
-while read aLine; do
-  case "$aLine" in
-    \#*) continue;;
-    *) echo Processing: $aLine ;;
-  esac
-  # Skip lines with comments
-  [[ '$aLine' == \#* ]] && continue
-  NAME=$(echo $aLine|cut -d' ' -f1)
-  IP=$(echo $aLine|cut -d' ' -f2)
-  PORTS=$(echo $aLine|cut -d' ' -f3)
-  # Add NAT entries
-  for portStr in $(echo $PORTS|sed 's/,/ /g'); do
-    PORT_TYPE=$(echo $portStr|cut -d':' -f1)
-    PORT_NUMBER=$(echo $portStr|cut -d':' -f2)
-    echo "IP: $IP , NAME: $NAME , PORT: $PORT_NUMBER , TYPE: $PORT_TYPE"
-    iptables -t nat -A PREROUTING -p ${PORT_TYPE} -i tun0 --dport ${PORT_NUMBER} -j DNAT --to-destination ${VXLAN_IP_NETWORK}.${IP}:${PORT_NUMBER}
-    iptables -A FORWARD -p ${PORT_TYPE} -d ${VXLAN_IP_NETWORK}.${IP} --dport ${PORT_NUMBER} -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
-  done
-done </config/nat.conf
-
 if [ -n "${VPN_INTERFACE}" ]; then
+  # Open inbound NAT ports in nat.conf
+  while read aLine; do
+    case "$aLine" in
+      \#*) continue;;
+      *) echo Processing: $aLine ;;
+    esac
+    # Skip lines with comments
+    [[ '$aLine' == \#* ]] && continue
+    NAME=$(echo $aLine|cut -d' ' -f1)
+    IP=$(echo $aLine|cut -d' ' -f2)
+    PORTS=$(echo $aLine|cut -d' ' -f3)
+    # Add NAT entries
+    for portStr in $(echo $PORTS|sed 's/,/ /g'); do
+      PORT_TYPE=$(echo $portStr|cut -d':' -f1)
+      PORT_NUMBER=$(echo $portStr|cut -d':' -f2)
+      echo "IP: $IP , NAME: $NAME , PORT: $PORT_NUMBER , TYPE: $PORT_TYPE"
+      iptables -t nat -A PREROUTING -p ${PORT_TYPE} -i ${VPN_INTERFACE} --dport ${PORT_NUMBER} -j DNAT --to-destination ${VXLAN_IP_NETWORK}.${IP}:${PORT_NUMBER}
+      iptables -A FORWARD -p ${PORT_TYPE} -d ${VXLAN_IP_NETWORK}.${IP} --dport ${PORT_NUMBER} -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+    done
+  done </config/nat.conf
 
   echo "Setting iptables for VPN with NIC ${VPN_INTERFACE}"
   # Firewall incomming traffic from VPN
@@ -42,7 +41,7 @@ if [ -n "${VPN_INTERFACE}" ]; then
   iptables -A FORWARD -i ${VPN_INTERFACE} -j REJECT
 
   if [ "$VPN_BLOCK_OTHER_TRAFFIC" = true ] ; then
-    # Do not forward any traffic that does not leave through tun0
+    # Do not forward any traffic that does not leave through ${VPN_INTERFACE}
     # The openvpn will also add drop rules but this is to ensure we block even if VPN is not connecting
     iptables --policy FORWARD DROP
     iptables -I FORWARD -o ${VPN_INTERFACE} -j ACCEPT
