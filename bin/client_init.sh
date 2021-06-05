@@ -37,6 +37,7 @@ K8S_DNS_IP="$(echo ${K8S_DNS_IPS} | cut -d ' ' -f 1)"
 GATEWAY_IP="$(dig +short ${GATEWAY_NAME} @${K8S_DNS_IP})"
 #GW_ORG=$(route |awk '$1=="default"{print $2}')
 NAT_ENTRY="$(grep $(hostname) /config/nat.conf||true)"
+VXLAN_GATEWAY_IP="${VXLAN_IP_NETWORK}.1"
 
 # For debugging reasons print some info
 ip addr
