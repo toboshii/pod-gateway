@@ -13,6 +13,7 @@ if [ `cat /proc/sys/net/ipv4/ip_forward` != 1 ]; then
 fi
 
 # Create VXLAN NIC
+VXLAN_GATEWAY_IP="${VXLAN_IP_NETWORK}.1"
 ip link add vxlan0 type vxlan id $VXLAN_ID  dev eth0 dstport 0 || true
 ip addr add ${VXLAN_GATEWAY_IP}/24 dev vxlan0 || true
 ip link set up dev vxlan0
