@@ -6,6 +6,12 @@ cat /default_config/settings.sh
 cat /config/settings.sh
 . /config/settings.sh
 
+# Enable IP forwarding
+if [ `cat /proc/sys/net/ipv4/ip_forward` != 1 ]; then
+    echo "ip_forward is not enabled; enabling."
+    sysctl -w net.ipv4.ip_forward=1
+fi
+
 # Create VXLAN NIC
 ip link add vxlan0 type vxlan id $VXLAN_ID  dev eth0 dstport 0 || true
 ip addr add ${VXLAN_GATEWAY_IP}/24 dev vxlan0 || true
